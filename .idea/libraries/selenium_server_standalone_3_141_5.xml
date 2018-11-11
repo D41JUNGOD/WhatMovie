@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="selenium-server-standalone-3.141.5">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Downloads/Downloads/chromedriver_win32/selenium-server-standalone-3.141.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
