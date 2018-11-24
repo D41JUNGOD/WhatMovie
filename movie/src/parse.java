@@ -7,13 +7,13 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 class parse{
     private static String url = null;
-    private static boolean view = false;
-    public static void set_url(String theme,boolean view){
-        parse.view = view;
+    private static String[] m_name = new String[16];
+    private static String[] m_link = new String[16];
+
+    public static void set_url(String theme){
         if(theme.equals("crime")){
             parse.url = "http://moviejoa.net/bbs/board.php?bo_table=movie&sfl=wr_1&stx=%EB%B2%94%EC%A3%84&s_tag=%EB%B2%94%EC%A3%84&sop=and&sst=wr_3&sod=desc&sca=";
         }
@@ -59,15 +59,15 @@ class parse{
         Document doc = Jsoup.parse(html);
         Elements contents = doc.select("#content .article table tbody tr .title .tit3");
 
-        StringBuilder sb = new StringBuilder("");
+        StringBuilder movie_rank = new StringBuilder();
         for (Element content : contents) {
-            sb.append(ct + " " + content.text() + "\n");
+            movie_rank.append(ct + " " + content.text() + "\n");
             ct += 1;
         }
-        return sb.toString();
+        return movie_rank.toString();
 
     }
-    public static String theme_movie(){
+    public static String[] theme_movie(){
         WebDriver driver;
         String html;
         int ct=1;
@@ -85,45 +85,34 @@ class parse{
         driver.quit();
 
         Document doc = Jsoup.parse(html);
+
         Elements contents = doc.select(".fz_list li .fz_subject .list_title");
 
-        StringBuilder movie_name = new StringBuilder();
-
+        ct = 1;
         for (Element content : contents) {
-            movie_name.append(ct + " " + content.text() + "\n");
+            parse.m_name[ct] = content.text();
             ct++;
         }
-        //Movie Link
-        if(parse.view) {
-            Elements links = doc.select(".fz_list li .fz_subject a");
-            StringBuilder movie_link = new StringBuilder();
 
-            String[] m_name = new String[16];
-            String[] m_link = new String[16];
-            ct = 1;
-            for (Element content : contents) {
-                m_name[ct] = content.text();
-                ct++;
-            }
-            ct = 1;
-            for (Element link : links) {
-                m_link[ct] = link.attr("href");
-                ct++;
-            }
-            for(ct = 1; ct<=15; ct++){
-                movie_link.append(ct + " " + m_name[ct] + " " + m_link[ct] + "\r\n");
-            }
-            try {
-                FileOutputStream fo = new FileOutputStream("link.txt");
-                fo.write(movie_link.toString().getBytes());
-                fo.flush();
-                fo.close();
-            }catch(Exception e){
-                System.out.println("ERROR!");
-            }
+        Elements links = doc.select(".fz_list li .fz_subject a");
+
+        ct = 1;
+        for (Element link : links) {
+            parse.m_link[ct] = link.attr("href");
+            ct++;
         }
 
-        return movie_name.toString();
+        return parse.m_name;
 
+    }
+    public static void movie_view(int idx){
+        //Movie Link
+        WebDriver driver;
+        int ct=1;
+
+        System.setProperty("webdriver.chrome.driver","C:\\Users\\oonja\\Downloads\\Downloads\\chromedriver_win32\\chromedriver.exe");
+
+        driver = new ChromeDriver();
+        driver.get(parse.m_link[idx]);
     }
 }
