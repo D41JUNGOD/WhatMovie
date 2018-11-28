@@ -1,0 +1,362 @@
+package main;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import java.util.Scanner;
+import java.io.FileOutputStream;
+import javax.swing.*;
+import javax.swing.JDialog;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+class parse{
+    private static String url = null;
+    private static String[] m_name = new String[16];
+    private static String[] m_link = new String[16];
+
+    //필요한 url들
+    public static void set_url(String theme){
+        if(theme.equals("crime")){
+            parse.url = "http://moviejoa.net/bbs/board.php?bo_table=movie&sfl=wr_1&stx=%EB%B2%94%EC%A3%84&s_tag=%EB%B2%94%EC%A3%84&sop=and&sst=wr_3&sod=desc&sca=";
+        }
+        if(theme.equals("adventure")){
+            parse.url = "http://moviejoa.net/bbs/board.php?bo_table=movie&sfl=wr_1&stx=%EB%AA%A8%ED%97%98&s_tag=%EB%AA%A8%ED%97%98&sop=and&sst=wr_3&sod=desc&sca=";
+        }
+        if(theme.equals("sf")){
+            parse.url = "http://moviejoa.net/bbs/board.php?bo_table=movie&sfl=wr_1&stx=SF&s_tag=SF&sop=and&sst=wr_3&sod=desc&sca=";
+        }
+        if(theme.equals("scare")){
+            parse.url = "http://moviejoa.net/bbs/board.php?bo_table=movie&sfl=wr_1&stx=%EA%B3%B5%ED%8F%AC&s_tag=%EA%B3%B5%ED%8F%AC&sop=and&sst=wr_3&sod=desc&sca=";
+        }
+        if(theme.equals("thril")){
+            parse.url = "http://moviejoa.net/bbs/board.php?bo_table=movie&sfl=wr_1&stx=%EC%8A%A4%EB%A6%B4%EB%9F%AC&s_tag=%EC%8A%A4%EB%A6%B4%EB%9F%AC&sop=and&sst=wr_3&sod=desc&sca=";
+        }
+        if(theme.equals("action")){
+            parse.url = "http://moviejoa.net/bbs/board.php?bo_table=movie&sfl=wr_1&stx=%EC%95%A1%EC%85%98&s_tag=%EC%95%A1%EC%85%98&sop=and&sst=wr_3&sod=desc&sca=";
+        }
+        if(theme.equals("anime")){
+            parse.url = "http://moviejoa.net/bbs/board.php?bo_table=movie&sfl=wr_1&stx=%EC%95%A0%EB%8B%88%EB%A9%94%EC%9D%B4%EC%85%98&s_tag=%EC%95%A0%EB%8B%88%EB%A9%94%EC%9D%B4%EC%85%98&sop=and&sst=wr_3&sod=desc&sca=";
+        }
+    }
+    //실시간 영화 순위
+    public static String movie_rank(){
+        WebDriver driver;
+        String html;
+        int ct=1;
+
+        System.setProperty("webdriver.chrome.driver","C:\\Users\\user\\Downloads\\chromedriver_win32\\chromedriver.exe");
+
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("headless");
+
+        driver = new ChromeDriver(options);
+        //driver.manage().timeouts().implicitlyWait(1,TimeUnit.SECONDS); // 시간
+        driver.get("https://movie.naver.com/movie/sdb/rank/rmovie.nhn#");
+
+        html = driver.getPageSource();
+        driver.quit();
+
+        Document doc = Jsoup.parse(html);
+        Elements contents = doc.select("#content .article table tbody tr .title .tit3");
+
+        StringBuilder movie_rank = new StringBuilder();
+        for (Element content : contents) {
+            movie_rank.append(ct + " " + content.text() + "\n");
+            ct += 1;
+        }
+        return movie_rank.toString();
+    }
+    //장르별 영화 순위
+    public static String[] theme_movie(){
+        WebDriver driver;
+        String html;
+        int ct=1;
+
+        System.setProperty("webdriver.chrome.driver","C:\\Users\\user\\Downloads\\chromedriver_win32\\chromedriver.exe");
+
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("headless");
+
+        driver = new ChromeDriver(options);
+        //driver.manage().timeouts().implicitlyWait(1,TimeUnit.SECONDS); // 시간
+        driver.get(parse.url);
+
+        html = driver.getPageSource();
+        driver.quit();
+
+        Document doc = Jsoup.parse(html);
+
+        Elements contents = doc.select(".fz_list li .fz_subject .list_title");
+
+        ct = 1;
+        for (Element content : contents) {
+            parse.m_name[ct] = content.text();
+            ct++;
+        }
+
+        Elements links = doc.select(".fz_list li .fz_subject a");
+
+        ct = 1;
+        for (Element link : links) {
+            parse.m_link[ct] = link.attr("href");
+            ct++;
+        }
+
+        return parse.m_name;
+    }
+    //시청하시겠습니까??
+    public static void movie_view(int idx){
+        //Movie Link
+        WebDriver driver;
+        int ct=1;
+
+        System.setProperty("webdriver.chrome.driver","C:\\Users\\user\\Downloads\\chromedriver_win32\\chromedriver.exe");
+
+        driver = new ChromeDriver();
+        driver.get(parse.m_link[idx]);
+    }
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class Jdia extends JDialog implements ActionListener{
+	JButton yes,no;
+	JLabel lbl;
+	
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource()==no){dispose();}
+	}
+	
+	Jdia(int num){
+		yes = new JButton("네");
+		no = new JButton("아니요");
+		lbl = new JLabel(num+"번을 시청하시겠습니까?");
+		add(lbl);
+		add(yes);
+		add(no);
+	
+		setLayout(new FlowLayout());
+		setSize(220,120);
+		setVisible(true);
+		
+	
+		yes.addActionListener(new ActionListener(){
+			   public void actionPerformed(ActionEvent e) {
+			    if(e.getSource()==yes){
+			    	dispose();
+			    	parse.movie_view(num);
+			    }
+			   }
+			  });
+
+		
+
+		no.addActionListener(this);
+	}
+}
+
+
+
+class thememovie extends JFrame implements ActionListener{
+	
+	Container panel;
+	JPanel pan_btn;
+	JPanel bot,dia;
+	JTextArea txta;
+	JButton crime,advan,scare,sf,thril,action,ani,Exit,watch,yes,no;
+	JTextField num;
+	JLabel text;
+	int movienum;
+	
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource()==crime) {parse.set_url("crime");}
+		if(e.getSource()==advan) {parse.set_url("adventure");}
+		if(e.getSource()==scare) {parse.set_url("scare");}
+		if(e.getSource()==sf) {parse.set_url("sf");}
+		if(e.getSource()==thril) {parse.set_url("thril");}
+		if(e.getSource()==action) {parse.set_url("action");}
+		if(e.getSource()==ani) {parse.set_url("anime");}
+		if(e.getSource()==watch){
+			movienum=Integer.parseInt(num.getText());
+			new Jdia(movienum);}
+		if(e.getSource()==Exit){dispose();}
+
+		String[] movie = parse.theme_movie();
+		StringBuilder sb = new StringBuilder("");
+		for(int i=1; i<=15; i++){
+			sb.append(i+" "+movie[i]+"\n");
+		}
+		txta.setText(sb.toString());
+		}
+	
+	thememovie(){
+		pan_btn = new JPanel();
+		bot = new JPanel();
+		txta = new JTextArea();
+
+		crime = new JButton("범죄");
+		advan = new JButton("모험");
+		sf = new JButton("SF");
+		thril = new JButton("스릴러");
+		action = new JButton("액션");
+		scare = new JButton("공포");
+		ani = new JButton("애니메이션");
+		Exit = new JButton(":: 이전 페이지 ::");
+		watch = new JButton("시청하기");
+		num = new JTextField(2);
+
+		setLayout(new BorderLayout());
+		
+		add(pan_btn,BorderLayout.NORTH);
+		add(txta,BorderLayout.CENTER);
+		add(bot,BorderLayout.SOUTH);
+		
+		pan_btn.add(crime);
+		pan_btn.add(advan);
+		pan_btn.add(sf);
+		pan_btn.add(scare);
+		pan_btn.add(thril);
+		pan_btn.add(action);
+		pan_btn.add(ani);
+		
+		bot.add(num);
+		bot.add(watch);
+		bot.add(Exit);
+		
+		crime.addActionListener(this);
+		ani.addActionListener(this);
+		thril.addActionListener(this);
+		advan.addActionListener(this);
+		scare.addActionListener(this);
+		sf.addActionListener(this);
+		action.addActionListener(this);
+		Exit.addActionListener(this);
+		watch.addActionListener(this);
+
+		
+		pan_btn.setBackground(Color.PINK);
+		txta.setBackground(Color.RED);
+		this.setSize(500, 400);
+		this.setVisible(true);
+		
+	}
+}
+
+public class main extends JFrame  implements ActionListener {
+
+Container panel;
+
+	
+
+	JButton movie_rank,theme_movie,Exit;
+
+	JLabel title_Jlabel;
+	JLabel name_Jlabel;
+	JLabel Jmvr_Jlabel = new JLabel(parse.movie_rank());
+	JScrollPane js ;
+	JTextField txt;
+	
+	
+String a;	
+	JTextArea txta;
+	JPanel pan1_title;
+	JPanel pan2_btn;
+	JPanel pan3_name;
+	JPanel pan4_movie_rank;
+	JPanel pan5_theme_movie;
+	
+	//버튼 액션 메소드
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+		if(e.getSource()==movie_rank){txta.setText(Jmvr_Jlabel.getText());}
+
+		if(e.getSource()==theme_movie){new thememovie();
+			}
+		
+		if(e.getSource()==Exit){ System.exit(0);}
+			
+	}
+
+	main() {
+		
+
+		pan1_title = new JPanel();
+		pan2_btn = new JPanel();
+		pan3_name = new JPanel();
+		pan4_movie_rank = new JPanel();
+
+		setLayout(new BorderLayout());
+
+		txta = new JTextArea();
+		txta.setEditable(false);
+		add(pan1_title,BorderLayout.NORTH);
+		add(pan2_btn, BorderLayout.WEST);
+		add(pan3_name,BorderLayout.SOUTH);
+		add(txta, BorderLayout.EAST);
+
+
+		// pan1_title 레이아웃 구성 --타이틀
+		
+		title_Jlabel = new JLabel("영화 뭐보지???");
+
+		pan1_title.add(title_Jlabel);
+
+		pan1_title.setBackground(Color.PINK);
+		
+		//pan1 레이아웃 구성 끝
+		
+		add(txta);
+		txta.setBackground(Color.RED);
+	
+		// pan2 레이아웃 구성  --버튼
+
+		movie_rank = new JButton("실시간 영화 순위");
+		theme_movie = new JButton("장르별 영화 순위");
+		
+		pan2_btn.add(movie_rank);
+		pan2_btn.add(theme_movie);
+		
+		pan2_btn.setBackground(Color.WHITE);
+		
+		// pan2 레이아웃 구성 끝
+		
+		//pan3 레이아웃 구성 -- 이름 학번
+	
+		name_Jlabel = new JLabel("20207 권예준 20209 김용완");
+		Exit = new JButton(":: 나가기 ::");
+		pan3_name.add(name_Jlabel);
+		pan3_name.add(Exit);
+		pan3_name.setBackground(Color.PINK);
+		
+		//pan3 레이아웃 구성 끝
+		
+		this.setSize(500, 385);
+		this.setVisible(true);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
+		movie_rank.addActionListener(this);
+		theme_movie.addActionListener(this);
+		Exit.addActionListener(this);
+
+	}
+
+	
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		new main();
+
+	}
+
+}
